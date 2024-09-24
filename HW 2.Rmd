@@ -1,0 +1,74 @@
+---
+title: "HW 2"
+author: "Sydney Mason"
+date: "9/25/2024"
+output:
+  pdf_document: default
+  html_document:
+    number_sections: true
+---
+
+This homework is meant to illustrate the methods of classification algorithms as well as their potential pitfalls.  In class, we demonstrated K-Nearest-Neighbors using the `iris` dataset.  Today I will give you a different subset of this same data, and you will train a KNN classifier.  
+
+```{r, echo = FALSE}
+set.seed(123)
+library(class)
+
+df <- data(iris) 
+
+View(iris)
+
+summary(iris)
+
+normal <-function(x) {
+  (x -min(x))/(max(x)-min(x))   
+}
+
+iris_norm <- as.data.frame(lapply(iris[,c(1,2,3,4)], normal))
+
+
+subset <- c(1:45, 58, 60:70, 82, 94, 110:150)
+iris_train <- iris_norm[subset,] 
+iris_test <- iris_norm[-subset,] 
+
+summary(iris[subset,])
+
+iris_target_category <- iris[subset,5]
+iris_test_category <- iris[-subset,5]
+summary(iris_norm)
+
+```
+
+#
+Above, I have given you a training-testing partition.  Train the KNN with $K = 5$ on the training data and use this to classify the 50 test observations.  Once you have classified the test observations, create a contingency table -- like we did in class -- to evaluate which observations your algorithm is misclassifying.   
+
+```{r}
+set.seed(123)
+#STUDENT INPUT
+pr<- knn(iris_train, iris_test, cl = iris_target_category, k=5)
+tab<- table(pr, iris_test_category) #confusion matrix
+tab
+
+summary(iris_test_category)
+summary(iris_target_category)
+```
+
+#
+
+Discuss your results.  If you have done this correctly, you should have a classification error rate that is roughly 20% higher than what we observed in class.  Why is this the case? In particular run a summary of the `iris_test_category` as well as `iris_target_category` and discuss how this plays a role in your answer.  
+
+The classification error rate was 22% in the KNN run just now compared to 2% in the KNN done in class.  There are a few reasons why the error was higher in this iteration than the one done in class. First, in class, the training-test split was 80% to 20%, whereas the split for this set was approximately 65% to 35%.  This meant that the algorithm had less available information to train on, making it more prone to errors once we started testing.  
+The other more prominent issue was that although theoretically the subset was "random" as it was a collection of random entries, it wasn't truly randomized.  There were large swaths of data that were included in the training set and then random numbers, however they were chosen by a human and not fully randomized.  The other issue with this was based upon how the iris data set is formed.  It organized the data based on the species, so setosa is the first 50 entries, then versicolor, then virginica.  The training set that was generated is 46% setosa, 13% versicolor, and 40% virginica, compared to a far more even split of 33% setosa, 30% versicolor, and 37% virginica that was found in the class iteration of KNN.  Since versicolor was so underepresented in the training data and versicolor and virginica overlapped, versicolor got misclassified at a much higher rate.  To add onto that, although versicolor was underrepresented in the training set, it was overrepresented in the test set, leading to more misclassifications.
+
+#
+
+Choice of $K$ can also influence this classifier.  Why would choosing $K = 6$ not be advisable for this data? 
+
+Choosing K=6 would not be advisable for this data because 6 is divisible by three, which is the number of parameters we have.  If the 6 nearest neighbors were split evenly with each species having two close neighbors, R would pick a random species to serve as the result for KNN which would not be accurate.  Using a number like 4, 5, or 7, which are still greater than the number of species, would be better because a majority can still be obtained without giving credence to a minority species within the dataset.
+
+#
+
+Build a github repository to store your homework assignments.  Share the link in this file.  
+
+https://github.com/SydneymMason28/HW390
+
